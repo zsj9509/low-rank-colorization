@@ -1,0 +1,32 @@
+This package is the implementation of the AAAI-2012 paper: Shusen Wang and Zhihua Zhang. Colorization by Matrix Completion. In the 26th AAAI Conference on Artificial Intelligence (AAAI-2012).
+
+Author: Shusen Wang (Zhejiang University, China), wss@zju.edu.cn
+
+Licence: do whatever you want with the code.
+
+Remark: 
+1. Do NOT report the running time of this code because it has not been carefully tuned.
+2. If you have problem with this code, please contact the author wss@zju.edu.cn
+
+
+
+How to use:
+
+1. provide the data
+	a. an m*n matrix B (monochrome image)
+	b. an m*3n matrix D (color image whose nonzero entries represent the input labels)
+	c. an m*3n matrix Omega (entry "1" indicates the corresponding pixel is labelled)
+	d. >> Data.B = B; Data.D = D; Data.Omega = Omega;
+
+2. The Low-Rank method (LR) OR the Low-rank + Local-color-consistency method (LL)
+	a. LR: [L S X] = ColorizationLR(Data, lambda, eta)
+	   LL: [L S X] = ColorizationLL(Data, lambda, eta)
+	   The meaning of the variables L, S, X, lambda, eta are specified in Eq. (5) of the paper.
+	b. use the matlab commmand 
+		>> img = reshape(L, [m, n, 3]);
+           to get the colorized image.
+
+3. If the labels are provided manually:
+	a. rename the monochrome image as "BW.png"
+	b. rename the color image containting the labels as "manual.png"
+	c. run the script "process_manual_labeled_image.m" to obtain "Data". 
