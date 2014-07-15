@@ -4,10 +4,9 @@ function [E_Img, PSNR]   =  WNNM_DeNoising( N_Img, O_Img, Par )
 % O_Img: clean image
 
 E_Img           = N_Img;                                                        % Estimated Image
-[Height, Width]  = size(E_Img);   
+[Height, Width] = size(E_Img);   
 TotalPatNum     = (Height-Par.patsize+1)*(Width-Par.patsize+1);                 %Total Patch Number in the image
 Dim             = Par.patsize*Par.patsize;  
-
 
 [Neighbor_arr, Num_arr, Self_arr] =	NeighborIndex(N_Img, Par);                  % PreCompute the all the patch index in the searching window 
             NL_mat              =   zeros(Par.patnum,length(Num_arr));          % NL Patch index matrix
@@ -28,9 +27,9 @@ for iter = 1 : Par.Iter
         end
     end       
 
-     [EPat, W]  =  PatEstimation( NL_mat, Self_arr, Sigma_arr, CurPat, Par );   % Estimate all the patches
-     E_Img      =  Patch2Im( EPat, W, Par.patsize, Height, Width );             
-     PSNR  = csnr( O_Img, E_Img, 0, 0 );    
+    [EPat, W]  =  PatEstimation( NL_mat, Self_arr, Sigma_arr, CurPat, Par );   % Estimate all the patches
+    E_Img      =  Patch2Im( EPat, W, Par.patsize, Height, Width );             
+    PSNR  = csnr( O_Img, E_Img, 0, 0 );    
     fprintf( 'Iter = %2.3f, PSNR = %2.2f \n', iter, PSNR );
 end
 
