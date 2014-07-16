@@ -18,7 +18,7 @@ if nargin < 5
     end
 end
 
-[M N] = size(B);
+[M, N] = size(B);
 G = zeros(M, 3*N);
 
 % we want to label each unlabeled (i, j)

@@ -1,4 +1,4 @@
-function [L S X iter] = ColorizationLL(Data, lambda, eta, tolerance, r)
+function [L, S, X, iter] = ColorizationLL(Data, lambda, eta, tolerance, r)
 
 if nargin < 5
     [G] = LocalColorConsistency(Data.D, Data.B, Data.Omega, tolerance);
@@ -7,7 +7,10 @@ else
 end
 
 O = (G > 0);
-Data.Omega = Data.Omega + O;Data.D = Data.D + G;
-[L S X iter] = ColorizationLR(Data, lambda, eta);
+
+Data.Omega = O;
+Data.D = G;
+
+[L, S, X, iter] = ColorizationLR(Data, lambda, eta);
 
 end

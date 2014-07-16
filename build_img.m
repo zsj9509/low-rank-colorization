@@ -1,6 +1,6 @@
 clear all; clc; close all;
 
-cImg = imread('hotel.jpg');
+cImg = imread('images/hotel.jpg');
 cImg = double(cImg)/255;
 [m, n, k] = size(cImg);
 
@@ -17,17 +17,17 @@ imshow(Omega, [])
 
 % labels
 D = zeros(size(cImg));
-temp1 = zeros(m, n);
+temp1 = -ones(m, n);
 temp2 = cImg(:,:,1);
 temp1(idx) = temp2(idx);
 D(:,:,1) = temp1;
 
-temp1 = zeros(m, n);
+temp1 = -ones(m, n);
 temp2 = cImg(:,:,2);
 temp1(idx) = temp2(idx);
 D(:,:,2) = temp1;
 
-temp1 = zeros(m, n);
+temp1 = -ones(m, n);
 temp2 = cImg(:,:,3);
 temp1(idx) = temp2(idx);
 D(:,:,3) = temp1;
@@ -48,17 +48,26 @@ clear temp1 temp2 idx;
 close all;
 
 [L, ~, ~, iter] = ColorizationLR(Data, 10, 10, 1e-5, 500);
+% [L, ~, ~, iter] = ColorizationLL(Data, 10, 10, 1e-5);
 figure;
 rImg = reshape(L, m, n, k);
 imshow(rImg, []);
 
-AAAI = norm(rImg(:) - cImg(:), 2)/norm(rImg(:), 2);
+AAAI = norm(rImg(:) - cImg(:), 2)/norm(cImg(:), 2);
 
-[ L ] = local_Proximal( gImg, Data.D, Omega, 2 );
+[ L ] = optProximal( gImg, Data.D, Omega, 2 );
 % [ L ] = local_ADMM( gImg, Data.D, Omega, 2 );
 
 figure;
 rImg = reshape(L, m, n, k);
 imshow(rImg, []);
 
-Local = norm(rImg(:) - cImg(:), 2)/norm(rImg(:), 2);
+Global = norm(rImg(:) - cImg(:), 2)/norm(cImg(:), 2);
+
+
+
+% [ resImg ] = localColorization( gImg, D, 0.2);
+% Local = norm(resImg(:) - cImg(:), 2)/norm(cImg(:), 2);
+% imshow(resImg, [])
+
+
