@@ -1,6 +1,6 @@
 function [ resImg ] = localColorization( gImg, Obvs, mu )
 
-patSize = 6;
+patSize = 5;
 sliding = 1;
 imSize = size(gImg);
 
@@ -9,14 +9,14 @@ imSize = size(gImg);
 
 patNum = length(patIdx);
 
-pat = augPathce(pat, patPos, imSize, patSize);
+pat = augPathce(pat, patPos, imSize, patSize/2);
 kdTree = vl_kdtreebuild(pat);
 
-resPatR = zeros(size(patR));
-resPatG = zeros(size(patG));
-resPatB = zeros(size(patB));
+resPatR = patR;
+resPatG = patG;
+resPatB = patB;
 
-patWgt = zeros(1, size(pat, 2));
+patWgt = (1e-3)*ones(1, size(pat, 2));
 for n = 1:patNum
     % find neighbors
     curPat = pat(:, n);
@@ -29,11 +29,17 @@ for n = 1:patNum
     gupObvsPat = [patR(:,gnpIdx), patG(:,gnpIdx), patB(:,gnpIdx)];
 
     Omega = double(gupObvsPat ~= -1);
-    if(sum(Omega(:)) < 3)
+    if(sum(Omega(:)) < ceil(patSize/2))
         continue;
     end
-    % [ newPat, gupRank ] = optADMM( gupGrayPat, gupObvsPat, Omega, mu );
-    [ newPat, gupRank, iter ] = optProximal( gupGrayPat, gupObvsPat, Omega, mu );
+
+    if(exist('newPat','var'))
+        [ newPat, gupRank, iter ] = optProximal( gupGrayPat, ...
+            gupObvsPat, Omega, mu, newPat );
+    else
+        [ newPat, gupRank, iter ] = optProximal( gupGrayPat, ...
+            gupObvsPat, Omega, mu );
+    end
     iter = length(iter);
 
     newWgt = exp(-gnpDis');

@@ -1,10 +1,14 @@
-function [ L1, obj ] = optProximal( W, O, Omega, mu )
+function [ L1, rank, obj ] = optProximal( W, O, Omega, mu, initL )
 
-tol = 1e-4;
 [m, n] = size(O);
 
-L0 = zeros(m, n);
-L1 = zeros(m, n);
+if(exist('initL','var'))
+    L0 = initL;
+    L1 = initL;
+else
+    L0 = zeros(m, n);
+    L1 = zeros(m, n);
+end
 
 t0 = 1;
 t1 = 1;
@@ -18,6 +22,8 @@ rho = initialRho(Omega, lambda);
 maxIter = 500;
 obj    = zeros(maxIter, 1);
 obj(1) = objectValue(L0, T, W, O, Omega, 0, lambda, mu);
+
+tol = 1e-4;
 
 for i = 2:maxIter       
     acc = 1;
@@ -38,12 +44,14 @@ for i = 2:maxIter
     t0 = t1;
     t1 = 1 + sqrt(1 + 4*t0^2)/2;
     
-    fprintf('iter %d, obj %d, rank %d, violate %d \n', i, obj(i), nnz(S), sumsqr(Omega.*(L0 - O)));
+    %fprintf('iter %d, obj %d, rank %d, violate %d \n', i, obj(i), nnz(S), sumsqr(Omega.*(L0 - O)));
     
     if(i > 3 && abs(obj(i) - obj(i - 1)) < tol)
         break;
     end
 end
+
+rank = nnz(S);
 
 obj = obj(2:i);
 
