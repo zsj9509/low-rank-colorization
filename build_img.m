@@ -6,7 +6,7 @@ cImg = double(cImg)/255;
 
 % observations
 idx = randperm(m*n);
-idx = idx(1:floor(length(idx)*0.05));
+idx = idx(1:floor(length(idx)*0.1));
 
 Omega = zeros(m, n);
 Omega(idx) = 1;
@@ -47,22 +47,32 @@ Data.B = gImg/3;
 clear temp1 temp2 idx;
 close all;
 
-[L, ~, ~, iter] = ColorizationLR(Data, 10, 10, 1e-5, 500);
-%[L, ~, ~, iter] = ColorizationLL(Data, 10, 10, 1e-5);
+[rImg, ~, ~, iter] = ColorizationLR(Data, 10, 10, 1e-5, 500);
+
+AAAI = norm(rImg(:) - cImg(:), 2)/norm(cImg(:), 2);
+figure;
+rImg = reshape(rImg, m, n, k);
+imshow(rImg, []);
+title('AAAI');
+
+[ L ] = optProximal( gImg, Data.D, Omega, 1 );
+
+Global = norm(rImg(:) - cImg(:), 2)/norm(cImg(:), 2);
 figure;
 rImg = reshape(L, m, n, k);
 imshow(rImg, []);
-
-AAAI = norm(rImg(:) - cImg(:), 2)/norm(cImg(:), 2);
-
-% [ L ] = optProximal( gImg, Data.D, Omega, 1 );
-% figure;
-% rImg = reshape(L, m, n, k);
-% imshow(rImg, []);
+title('global');
 
 [ rImg ] = localColorization( gImg, D, 0.3);
-Local = norm(rImg(:) - cImg(:), 2)/norm(cImg(:), 2);
 
+Local = norm(rImg(:) - cImg(:), 2)/norm(cImg(:), 2);
 figure;
 imshow(rImg, [])
+title('local');
 
+[ rImg ] = colorUseOpt( gImg/3, D );
+
+UseOpt = norm(rImg(:) - cImg(:), 2)/norm(cImg(:), 2);
+figure;
+imshow(rImg, [])
+title('useOpt');
