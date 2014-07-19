@@ -1,6 +1,6 @@
 function [ resImg ] = localColorization( gImg, Obvs, mu )
 
-patSize = 5;
+patSize = 6;
 sliding = 1;
 imSize = size(gImg);
 
@@ -16,7 +16,7 @@ resPatR = patR;
 resPatG = patG;
 resPatB = patB;
 
-patWgt = (1e-3)*ones(1, size(pat, 2));
+patWgt = zeros(1, size(pat, 2));
 for n = 1:patNum
     % find neighbors
     curPat = pat(:, n);

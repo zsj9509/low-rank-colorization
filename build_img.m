@@ -1,6 +1,6 @@
 clear all; clc; close all;
 
-cImg = imread('images/hotel-d.jpg');
+cImg = imread('images/hotel-ss.jpg');
 cImg = double(cImg)/255;
 [m, n, k] = size(cImg);
 
