@@ -1,6 +1,6 @@
 function [ resImg ] = localColorization( gImg, Obvs, mu )
 
-patSize = 6;
+patSize = 10;
 sliding = 1;
 imSize = size(gImg);
 
