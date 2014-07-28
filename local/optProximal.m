@@ -1,6 +1,6 @@
 function [ L1, rank, obj ] = optProximal( W, O, Omega, mu, initL )
 % W: [m n] gray image
-% O: [m n] observed positions
+% O: [m 3n] observed positions
 % Omega: [m 3n] observed values
 
 [m, n] = size(O);
@@ -22,11 +22,11 @@ T = sparse(T);
 
 lambda = min(20*numel(Omega)/nnz(Omega), 1000);
 rho = initialRho(Omega, lambda);
-maxIter = 500;
+maxIter = 10000;
 obj    = zeros(maxIter, 1);
 obj(1) = objectValue(L0, T, W, O, Omega, 0, lambda, mu);
 
-tol = obj(1)*1e-6;
+tol = 1e-6;
 
 for i = 2:maxIter       
     acc = 1;
@@ -47,7 +47,7 @@ for i = 2:maxIter
     t0 = t1;
     t1 = 1 + sqrt(1 + 4*t0^2)/2;
     
-    % fprintf('iter %d, obj %d, rank %d, violate %d \n', i, obj(i), nnz(S), sumsqr(Omega.*(L0 - O)));
+    fprintf('iter %d, obj %d, rank %d, violate %d \n', i, obj(i), nnz(S), sumsqr(Omega.*(L0 - O)));
     
     if(i > 3 && abs(obj(i) - obj(i - 1)) < tol)
         break;
