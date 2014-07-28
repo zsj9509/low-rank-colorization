@@ -1,70 +1,76 @@
-function [ L, resRank ] = optADMM( W, O, Omega, mu )
+function [ L, obj ] = optADMM( W, O, Omega, mu, para )
+% W: [m n] gray image
+% O: [m 3n] observed positions
+% Omega: [m 3n] observed values
 
-[m, n] = size(Omega);
-
-T = eye(n/3, n/3);
-T = [T, T, T];
-T = T';
-
-tol = 1e-8;
-
-rho = 10;
-R = zeros(m, n);
-Q = zeros(m, n);
-L = O;
-
-WTt = W*T';
-invT = T*T';
-invT = invT + rho*eye(size(invT));
-invT = inv(invT);
-invT = sparse(invT);
-
-maxIter = 1000;
-err = zeros(maxIter, 1);
-for i = 1:maxIter
-    % update X
-    X = min_X(WTt, rho*L, Q, R.*Omega, invT);
-    % update L
-    [U, S, V] = min_L(X, Q, mu, rho);
-    L = U*S*V';
-    
-    % update dual R & S
-    R = R + rho*(X - O).*Omega;
-    Q = Q + rho*(X - L);
-    
-    err(i) = norm((X - O).*Omega) + norm(X - L);
-    if(err(i) < tol)
-        break;
+% setup start and stop paras
+if(exist('para', 'var'))
+    if(isfield(para, 'tol'))
+        tol = para.tol;
+    else
+        tol = 1e-6;
     end
     
-    fprintf('iter %d, error: %d, rank %d \n', i, err(i), nnz(S));        
+    if(isfield(para, 'maxIter'))
+        maxIter = para.maxIter;
+    else
+        maxIter = 1000;
+    end
+    
+    if(isfield(para, 'L'))
+        L = para.L;
+    else
+        L = repmat(W, 1, 3);
+    end
+else
+    L = repmat(W, 1, 3);
+    maxIter = 1000;
+    tol = 1e-6;
 end
 
-resRank = nnz(S);
+% algorithm parameters
+X = L;
+Q = zeros(size(O));
+lambda = min(20*numel(Omega)/nnz(Omega), 1000);
+rho = 1e-4;
+rho_max = 1e+10;
 
+% temp matrix
+[~, n] = size(W);
+T = eye(n, n);
+T = [T, T, T];
+T = sparse(T');
+A = sparse(T*T');
+Omega = sparse(Omega);
+tempC = W*T' + lambda*(Omega.*O);
+
+% start loop
+obj = zeros(maxIter, 1);
+for i = 1:maxIter
+    C = tempC + rho*X - Q;
+    [ L, iter ] = conjGrad_admm( A, Omega, lambda, rho, C, L(:) );
+    iter = length(iter);
+
+    [U, S, V] = svt(L + Q/rho, mu/rho);
+    X = U*S*V';
+
+    Q = Q + rho*(L - X);
+
+    obj(i) = (1/2)*sumsqr(L*T - W);
+    obj(i) = obj(i) + (lambda/2)*sumsqr(Omega.*(L - O));
+    obj(i) = obj(i) + mu*sum(diag(S));
+
+    fprintf('iter %d, obj %d, inner %d \n', i, obj(i), iter);
+    if(rho < rho_max)
+        rho = rho*1.5;
+    end
+
+    if(i > 3 && abs(obj(i) - obj(i - 1)) < tol)
+        break;
+    end
 end
 
-%% --------------------------------------------------------------
-function X = min_X( WTt, rhoL, S, R_O, invT)
-
-A = WTt + rhoL - S - R_O;
-
-X = A*invT;
-
-end
-
-%% --------------------------------------------------------------
-function [U, S, V] = min_L(X, S, mu, rho)
-
-[U, S, V] = svd(X + S/rho, 'econ');
-
-S = diag(S);
-S = S - mu/rho;
-S = S(S > 0);
-
-U = U(:,1:length(S));
-V = V(:,1:length(S));
-S = diag(S);
+obj = obj(1:i);
 
 end
 

@@ -18,9 +18,6 @@ else
 end
 Omega = repmat(Omega, 1, 3);
 
-figure;
-imshow(Omega, [])
-
 % labels
 D = zeros(size(cImg));
 temp1 = -ones(m, n);
@@ -40,49 +37,36 @@ D(:,:,3) = temp1;
 
 % gray images
 gImg = (cImg(:,:,1) + cImg(:,:,2) + cImg(:,:,3));
-figure;
-imshow(gImg, []);
 
 clear temp1 temp2 idx;
-close all;
 
 % %% ------------------------------------------------------------------------
 
 Data.Omega = Omega;
 Data.D = reshape(double(D), m, n*k);
 Data.B = gImg/3;
-% 
-% [rImg, ~, ~, iter] = ColorizationLR(Data, 10, 10, 1e-5, 500);
-% 
-% AAAI = norm(rImg(:) - cImg(:), 2)/norm(cImg(:), 2);
-% figure;
-% rImg = reshape(rImg, m, n, k);
-% imshow(rImg, []);
-% title('AAAI');
 
 para.maxIter = 10000;
-para.tol = 1e-10;
+para.tol = 1e-8;
 
-[ rImg, obj_pro ] = optProximal( gImg, Data.D, Omega, 1, para );
-[ rImg, obj_re ] = optReweight( gImg, Data.D, Omega, 1, para );
-[ rImg, obj_alm ] = optADMM( gImg, Data.D, Omega, 1, para );
+t = tic;
+[ ~, obj_pro ] = optProximal( gImg, Data.D, Omega, 1, para );
+t_pro = toc(t);
 
-% Global = norm(rImg(:) - cImg(:), 2)/norm(cImg(:), 2);
-% figure;
-% rImg = reshape(rImg, m, n, k);
-% imshow(rImg, []);
-% title('global');
+t = tic;
+[ ~, obj_re  ] = optReweight( gImg, Data.D, Omega, 1, para );
+t_re = toc(t);
 
-% [ rImg ] = localColorization( gImg, D, 0.3);
-% 
-% Local = norm(rImg(:) - cImg(:), 2)/norm(cImg(:), 2);
-% figure;
-% imshow(rImg, [])
-% title('local');
-% 
-% [ rImg ] = colorUseOpt( gImg/3, D );
-%  
-% UseOpt = norm(rImg(:) - cImg(:), 2)/norm(cImg(:), 2);
-% figure;
-% imshow(rImg, [])
-% title('useOpt');
+t = tic;
+[ ~, obj_alm ] = optADMM( gImg, Data.D, Omega, 1, para );
+t_alm = toc(t);
+
+close all;
+figure;
+p = loglog(obj_pro);
+hold on;
+set(p, 'color', 'red');
+p = loglog(obj_re);
+set(p, 'color', 'black');
+p = loglog(obj_alm);
+set(p, 'color', 'blue');
