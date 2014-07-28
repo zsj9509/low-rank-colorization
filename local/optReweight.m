@@ -24,7 +24,7 @@ for i = 1:maxIter
     
     B = mu*invQ;
     
-    [L, iter] = conjGrad(A, B, C, Omega, lambda, L(:));
+    [L, iter] = conjGrad_rw(A, B, C, Omega, lambda, L(:));
     iter = length(iter);
     
     obj(i) = 0.5*sumsqr( LT - W );

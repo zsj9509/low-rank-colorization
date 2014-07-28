@@ -1,4 +1,4 @@
-function [X, err] = conjGrad(A, B, C, Omega, lambda, x)
+function [X, err] = conjGrad_rw(A, B, C, Omega, lambda, x)
 %% --------------------------------------------------------------
 
 m = size(B, 2);

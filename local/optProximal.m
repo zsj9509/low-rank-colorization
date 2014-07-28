@@ -37,7 +37,7 @@ for i = 2:maxIter
     end
     
     gradY = (Y*T - W)*T' + lambda*(Y - O).*Omega;
-    [U, S, V] = proximal_L(Y, gradY, mu, rho);
+    [U, S, V] = svt(Y - gradY/rho, mu/rho);
     newL = U*S*V';
     L0 = L1;
     L1 = newL;
@@ -57,22 +57,6 @@ end
 rank = nnz(S);
 
 obj = obj(2:i);
-
-end
-
-%% --------------------------------------------------------------
-function [U, S, V] = proximal_L(L, gradL, mu, rho)
-
-Z = L - gradL/rho;
-[U, S, V] = svd(Z, 'econ');
-
-S = diag(S);
-S = S - mu/rho;
-S = S( S > 0 );
-
-U = U(:, 1:length(S));
-V = V(:, 1:length(S));
-S = diag(S);
 
 end
 
