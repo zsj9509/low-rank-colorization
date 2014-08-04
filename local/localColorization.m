@@ -1,6 +1,6 @@
 function [ resImg ] = localColorization( gImg, Obvs, mu )
 
-patSize = 10;
+patSize = 7;
 sliding = 1;
 imSize = size(gImg);
 
@@ -9,7 +9,7 @@ imSize = size(gImg);
 
 patNum = length(patIdx);
 
-pat = augPathce(pat, patPos, imSize, patSize/2);
+pat = augPatch(pat/3, patPos, imSize, 2);
 kdTree = vl_kdtreebuild(pat);
 
 resPatR = patR;
@@ -17,46 +17,80 @@ resPatG = patG;
 resPatB = patB;
 
 patWgt = zeros(1, size(pat, 2));
-for n = 1:patNum
-    % find neighbors
-    curPat = pat(:, n);
-    [gnpIdx, gnpDis] = vl_kdtreequery(kdTree, pat, curPat, ...
-        'NumNeighbors', patSize^2);
-    gnpIdx = gnpIdx';
+patJmp = 100;
+for n = 1:patJmp:patNum
+    patJmp = min(patJmp, patNum - n);
+    % index and weight
+    gnpIdx = zeros(patSize^2, patJmp);
+    gnpDis = zeros(patSize^2, patJmp);
+    curPat = pat(:, n:n + patJmp);
+    parfor m = 1:patJmp
+        curPat_m = curPat(:, m);
+        [gnpIdx_m, gnpDis_m] = vl_kdtreequery(kdTree, pat, curPat_m, ...
+            'NumNeighbors', patSize^2);
+        gnpIdx_m = gnpIdx_m';
+        
+        gnpIdx(:, m) = gnpIdx_m;
+        gnpDis(:, m) = exp(-2*gnpDis_m');
+    end
+    clear curPat curPat_m gnpIdx_m gnpDis_m;
+    
+    % observations
+    gupObv = cell(1, patJmp);
+    gayPat = cell(1, patJmp);
+    for m = 1:patJmp
+        gnpIdx_m = gnpIdx(:, m);
+        
+        gupObv_m = [patR(:,gnpIdx_m), patG(:,gnpIdx_m), patB(:,gnpIdx_m)];
+        gayPat_m = 3*double(pat(1:patSize^2, gnpIdx_m));
+        
+        gupObv{m} = gupObv_m;        
+        gayPat{m} = gayPat_m;
+    end
+    clear gupObv_m gnpIdx_m gayPat_m;
+    
+    % optimization
+    para.maxIter = 100;
+    para.tol = 1e-5;    
+    para.pnt = 0;
+    
+    newPat = cell(1, patJmp);
+    iter   = zeros(1, patJmp); 
+    parfor m = 1:patJmp
+        Omega_m = double(gupObv{m} ~= -1);
+        if(sum(Omega_m(:)) < ceil(patSize/2))
+            continue;
+        end
+        Omega_m = sparse(Omega_m);
+        gayPat_m = gayPat{m};
+        gupObv_m = gupObv{m};
 
-    % opt
-    gupGrayPat = double(pat(1:patSize^2, gnpIdx));
-    gupObvsPat = [patR(:,gnpIdx), patG(:,gnpIdx), patB(:,gnpIdx)];
+        [newPat{m}, iter_m] = optADMM( gayPat_m, gupObv_m, ...
+            Omega_m, mu, para );
+        iter(m) = length(iter_m);
+    end
+    iter = mean(iter);
+    clear Omega_m gayPat_m gupObv_m;
+    
+    % weighted update results
+    for m = 1:patJmp
+        gnpIdx_m = gnpIdx(:, m);
+        gnpDis_m = gnpDis(:, m);
+        newPat_m = newPat{m};
+        
+        % update recover patches
+        N = length(gnpIdx_m);
+        resPatR(:, gnpIdx_m) = ...
+            updateGupPat(newPat_m(:,1:N), resPatR(:, gnpIdx_m), gnpDis_m', patWgt(gnpIdx_m));
+        resPatG(:, gnpIdx_m) = ...
+            updateGupPat(newPat_m(:,N+1:2*N), resPatG(:, gnpIdx_m), gnpDis_m', patWgt(gnpIdx_m));
+        resPatB(:, gnpIdx_m) = ...
+            updateGupPat(newPat_m(:,2*N + 1:end), resPatB(:, gnpIdx_m), gnpDis_m', patWgt(gnpIdx_m));
 
-    Omega = double(gupObvsPat ~= -1);
-    if(sum(Omega(:)) < ceil(patSize/2))
-        continue;
+        patWgt(gnpIdx_m) = patWgt(gnpIdx_m) + gnpDis_m';
     end
 
-    if(exist('newPat','var'))
-        [ newPat, gupRank, iter ] = optProximal( gupGrayPat, ...
-            gupObvsPat, Omega, mu, newPat );
-    else
-        [ newPat, gupRank, iter ] = optProximal( gupGrayPat, ...
-            gupObvsPat, Omega, mu );
-    end
-    iter = length(iter);
-
-    newWgt = exp(-gnpDis');
-
-    % update recover patches
-    N = length(gnpIdx);
-    resPatR(:, gnpIdx) = ...
-        updateGupPat(newPat(:,1:N), resPatR(:, gnpIdx), newWgt, patWgt(gnpIdx));
-    resPatG(:, gnpIdx) = ...
-        updateGupPat(newPat(:,N+1:2*N), resPatG(:, gnpIdx), newWgt, patWgt(gnpIdx));
-    resPatB(:, gnpIdx) = ...
-        updateGupPat(newPat(:,2*N + 1:end), resPatB(:, gnpIdx), newWgt, patWgt(gnpIdx));
-
-    patWgt(gnpIdx) = patWgt(gnpIdx) + newWgt;
-
-    fprintf('%d out of %d, rank %d, obvs: %1.3f, iter: %d \n', ...
-        n, patNum, gupRank, sum(Omega(:))/numel(Omega), iter);
+    fprintf('%d out of %d, avg loops in opt %2.2f \n', n, patNum, iter);
 end
 
 resImgR = patch2im(resPatR, patIdx, patSize, imSize);
@@ -65,35 +99,6 @@ resImgB = patch2im(resPatB, patIdx, patSize, imSize);
 
 resImg = cat(3, resImgR, resImgG, resImgB);
 
-end
-
-%% --------------------------------------------------------------
-
-%% --------------------------------------------------------------
-function [rPat, gPat, bPat] = colorIm2patch(cImg, patSize, sliding)
-
-R = cImg(:,:,1);
-G = cImg(:,:,2);
-B = cImg(:,:,3);
-
-rPat  = im2patch(R, patSize, sliding);
-gPat  = im2patch(G, patSize, sliding);
-bPat  = im2patch(B, patSize, sliding);
-
-end
-
-%% --------------------------------------------------------------
-function [AugPat] = augPathce(pat, pos, imSize, c)
-    m = imSize(1);
-    n = imSize(2);
-    
-    pos(1,:) = c*pos(1,:)/n;
-    pos(2,:) = c*pos(2,:)/m;
-
-    pat = single(pat);
-    pos = single(pos);
-
-    AugPat = cat(1, pat, pos);
 end
 
 %% --------------------------------------------------------------

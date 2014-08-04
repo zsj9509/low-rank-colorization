@@ -9,7 +9,7 @@ if(~exist('x', 'var'))
     x = zeros(m*n, 1);
 end
 
-maxIter = m*n + min(m, n);
+maxIter = ceil(min(max(m, n)));
 err = zeros(maxIter, 1);
 
 % conjugate descent

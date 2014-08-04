@@ -9,7 +9,7 @@ if(~exist('x', 'var'))
     x = zeros(m*n, 1);
 end
 
-maxIter = m + n;
+maxIter = ceil(sqrt(min(m, n)));
 err = zeros(maxIter, 1);
 
 % conjugate descent
@@ -24,7 +24,7 @@ for i = 1:maxIter
     p = - rk + beta*p;
     
     err(i) = norm(rk, 2);
-    if(err(i) < 1e-4)
+    if(err(i) < 1e-6)
         break;
     end
     r = rk;

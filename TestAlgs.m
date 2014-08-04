@@ -13,7 +13,7 @@ if(1 == mask)
 else
     Omega = zeros(m, n);
     idx = randperm(m*n);
-    idx = idx(1:floor(length(idx)*0.5));
+    idx = idx(1:floor(length(idx)*0.1));
     Omega(idx) = 1;
 end
 Omega = repmat(Omega, 1, 3);
@@ -46,19 +46,19 @@ Data.Omega = Omega;
 Data.D = reshape(double(D), m, n*k);
 Data.B = gImg/3;
 
-para.maxIter = 10000;
+para.maxIter = 100000;
 para.tol = 1e-8;
 
 t = tic;
-[ ~, obj_pro ] = optProximal( gImg, Data.D, Omega, 1, para );
+[ ~, obj_pro ] = optProximal( gImg, Data.D, Omega, 2, para );
 t_pro = toc(t);
 
 t = tic;
-[ ~, obj_re  ] = optReweight( gImg, Data.D, Omega, 1, para );
+[ ~, obj_re  ] = optReweight( gImg, Data.D, Omega, 2, para );
 t_re = toc(t);
 
 t = tic;
-[ ~, obj_alm ] = optADMM( gImg, Data.D, Omega, 1, para );
+[ ~, obj_alm ] = optADMM( gImg, Data.D, Omega, 2, para );
 t_alm = toc(t);
 
 close all;

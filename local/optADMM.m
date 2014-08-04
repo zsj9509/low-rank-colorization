@@ -32,7 +32,7 @@ end
 X = L;
 Q = zeros(size(O));
 lambda = min(20*numel(Omega)/nnz(Omega), 1000);
-rho = 1e-4;
+rho = 1e-3;
 rho_max = 1e+10;
 
 % temp matrix
@@ -60,9 +60,12 @@ for i = 1:maxIter
     obj(i) = obj(i) + (lambda/2)*sumsqr(Omega.*(L - O));
     obj(i) = obj(i) + mu*sum(diag(S));
 
-    fprintf('iter %d, obj %d, inner %d \n', i, obj(i), iter);
+    if(para.pnt == 1)
+        fprintf('iter %d, obj %d, inner %d \n', i, obj(i), iter);
+    end
+    
     if(rho < rho_max)
-        rho = rho*1.5;
+        rho = rho*1.2;
     end
 
     if(i > 3 && abs(obj(i) - obj(i - 1)) < tol)
