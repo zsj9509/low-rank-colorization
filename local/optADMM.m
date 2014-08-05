@@ -1,4 +1,4 @@
-function [ L, obj ] = optADMM( W, O, Omega, mu, para )
+function [ L, obj ] = optADMM( W, O, Omega, mu, L, para )
 % W: [m n] gray image
 % O: [m 3n] observed positions
 % Omega: [m 3n] observed values
@@ -16,14 +16,7 @@ if(exist('para', 'var'))
     else
         maxIter = 1000;
     end
-    
-    if(isfield(para, 'L'))
-        L = para.L;
-    else
-        L = repmat(W, 1, 3);
-    end
 else
-    L = repmat(W, 1, 3);
     maxIter = 1000;
     tol = 1e-6;
 end
@@ -61,11 +54,11 @@ for i = 1:maxIter
     obj(i) = obj(i) + mu*sum(diag(S));
 
     if(para.pnt == 1)
-        fprintf('iter %d, obj %d, inner %d \n', i, obj(i), iter);
+        fprintf('iter %d, obj %d, inner %d, rank %d \n', i, obj(i), iter, nnz(S));
     end
     
     if(rho < rho_max)
-        rho = rho*1.2;
+        rho = rho*1.25;
     end
 
     if(i > 3 && abs(obj(i) - obj(i - 1)) < tol)

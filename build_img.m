@@ -1,7 +1,7 @@
 clear all; clc; close all;
 
 mask = 0;
-cImg = imread('images/hotel-d.jpg');
+cImg = imread('images/hotel.jpg');
 cImg = double(cImg)/255;
 [m, n, k] = size(cImg);
 
@@ -51,8 +51,18 @@ close all;
 % Data.Omega = Omega;
 % Data.D = reshape(double(D), m, n*k);
 % Data.B = gImg/3;
+
+% [ rImg ] = reduceGnps( gImg, D, 0.4);
 % 
+% Reduce = norm(rImg(:) - cImg(:), 2)/norm(cImg(:), 2);
+% figure;
+% imshow(rImg, [])
+% title('Reduce');
+
+%%-------------------------------------------------------------------------
+% t = tic;
 % [rImg, ~, ~, iter] = ColorizationLR(Data, 10, 10, 1e-5, 500);
+% t_AAAI = toc(t);
 % 
 % AAAI = norm(rImg(:) - cImg(:), 2)/norm(cImg(:), 2);
 % figure;
@@ -63,7 +73,7 @@ close all;
 % para.maxIter = 10000;
 % para.tol = 1e-10;
 % para.pnt = 1;
-% 
+
 % [ rImg, obj_pro ] = optProximal( gImg, Data.D, Omega, 1, para );
 % [ rImg, obj_re ] = optReweight( gImg, Data.D, Omega, 1, para );
 % [ rImg, obj_alm ] = optADMM( gImg, Data.D, Omega, 1, para );
@@ -74,7 +84,7 @@ close all;
 % imshow(rImg, []);
 % title('global');
 
-[ rImg ] = localColorization( gImg, D, 0.3);
+[ rImg ] = localColorization( gImg, D, 0.3 );
 
 Local = norm(rImg(:) - cImg(:), 2)/norm(cImg(:), 2);
 figure;
