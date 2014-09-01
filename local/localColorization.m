@@ -1,15 +1,26 @@
 function [ resImg ] = localColorization( gImg, Obvs, mu )
 
-patSize = 14;
+patSize = 10;
 kNN = min(100, patSize^2);
 sliding = 2;
-imSize = size(gImg);
 
+% image to patch
+imSize = size(gImg);
 [pat, patIdx, patPos] = im2patch(gImg, patSize, sliding);
 [patR, patG, patB] = colorIm2patch(Obvs, patSize, sliding);
 
-patNum = length(patIdx);
+% filter patches with too few obvs
+nnzObv = sum(patR ~= -1, 1);
+nnzIdx = (nnzObv > 1);
+pat = pat(:, nnzIdx);
+patIdx = patIdx(nnzIdx);
+patPos = patPos(:, nnzIdx);
+patR = patR(:, nnzIdx);
+patG = patG(:, nnzIdx);
+patB = patB(:, nnzIdx);
 
+patNum = length(patIdx);
+% build up kd tree
 pat = augPatch(pat/3, patPos, imSize, 2);
 kdTree = vl_kdtreebuild(pat);
 
@@ -22,7 +33,7 @@ patJmp = min(floor(patNum*0.05), 400);
 for n = 1:patJmp:patNum
     patJmp = min(patJmp, patNum - n);
     [minest, idx] = findMin(patWgt, patJmp);
-    if(minest > patSize/2)
+    if(minest > min(patSize/2, 4))
         break;
     end
     
@@ -45,17 +56,14 @@ for n = 1:patJmp:patNum
     % observations
     gupObv = cell(1, patJmp);
     gayPat = cell(1, patJmp);
-    wamSat = cell(1, patJmp);
     for m = 1:patJmp
         gnpIdx_m = gnpIdx(:, m);
         
         gupObv_m = [patR(:,gnpIdx_m), patG(:,gnpIdx_m), patB(:,gnpIdx_m)];
         gayPat_m = 3*double(pat(1:patSize^2, gnpIdx_m));
-        wamSat_m = [resPatR(:,gnpIdx_m), resPatG(:,gnpIdx_m), resPatB(:,gnpIdx_m)];
         
         gupObv{m} = gupObv_m;        
         gayPat{m} = gayPat_m;
-        wamSat{m} = wamSat_m;
     end
     
     % optimization
@@ -63,23 +71,21 @@ for n = 1:patJmp:patNum
     para.tol = 1e-5;    
     para.pnt = 0;
     
-    newPat = cell(1, patJmp);
+    newPat = cell (1, patJmp);
     iter   = zeros(1, patJmp); 
+    rank   = zeros(1, patJmp);
     parfor m = 1:patJmp
         Omega_m = double(gupObv{m} ~= -1);
-        if(sum(Omega_m(:)) < ceil(patSize/2))
-            continue;
-        end
         Omega_m = sparse(Omega_m);
         gayPat_m = gayPat{m};
         gupObv_m = gupObv{m};
-        wamSat_m = wamSat{m};
 
-        [newPat{m}, iter_m] = optADMM( gayPat_m, gupObv_m, ...
-            Omega_m, mu, wamSat_m, para );
-        iter(m) = length(iter_m);
+        [newPat{m}, out] = optADMM( gayPat_m, gupObv_m, Omega_m, mu, para );
+        iter(m) = length(out.obj);
+        rank(m) = out.rank;
     end
     iter = mean(iter);
+    rank = mean(rank);
     
     % weighted update results
     for m = 1:patJmp
@@ -100,22 +106,11 @@ for n = 1:patJmp:patNum
     end
     
     % check convergence
-    fprintf('%d out of %d, avg loops in opt %2.2f, min wgt: %2.2f \n', ...
-        n, patNum, iter, minest);
+    fprintf('%d out of %d, avg loops %2.2f rank %2.2f, min wgt: %2.2f \n', ...
+        n, patNum, iter, rank, minest);
 end
 
 resImg = patch2colorIm(resPatR, resPatG, resPatB, patIdx, patSize, imSize);
-
-end
-
-%% --------------------------------------------------------------
-function [img] = patch2colorIm(patR, patG, patB, idx, patSize, imSize)
-
-resImgR = patch2im(patR, idx, patSize, imSize);
-resImgG = patch2im(patG, idx, patSize, imSize);
-resImgB = patch2im(patB, idx, patSize, imSize);
-
-img = cat(3, resImgR, resImgG, resImgB);
 
 end
 

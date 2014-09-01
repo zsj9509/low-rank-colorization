@@ -66,7 +66,7 @@ for i = 2:maxIter
     t1 = 1 + sqrt(1 + 4*t0^2)/2;
     
     if(para.pnt == 1)
-        fprintf('iter %d, obj %d, rank %d %d \n', i, obj(i), nnz(S));
+        fprintf('iter %d, obj %d, rank %d \n', i, obj(i), nnz(S));
     end
     
     if(i > 3 && abs(obj(i) - obj(i - 1)) < tol)
