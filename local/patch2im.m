@@ -16,5 +16,7 @@ for i  = 1:length(cols)
 end;
 
 IMout = IMout./Weight;
+IMout(isnan(IMout)) = 0;
+IMout(isinf(IMout)) = 0;
 
 end
