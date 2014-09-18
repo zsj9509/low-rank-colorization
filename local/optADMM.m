@@ -28,7 +28,11 @@ X1 = X0;
 alpha0 = 1;
 alpha1 = 1;
 Q = zeros(size(O));
-lambda = min(10*numel(Omega)/nnz(Omega), 400);
+if(isfield(para, 'lambda'))
+    lambda = para.lambda*numel(Omega)/nnz(Omega);
+else
+    lambda = min(10*numel(Omega)/nnz(Omega), 400);
+end
 rho = 1e-2;
 rho_max = 1e+10;
 

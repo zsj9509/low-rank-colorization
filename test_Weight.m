@@ -1,14 +1,14 @@
 clear all; clc; close all;
 
 mask = 0;
-cImg = imread('images/woman.jpg');
+cImg = imread('images/castle.jpg');
 cImg = double(cImg)/255;
 [m, n, k] = size(cImg);
 
 % observations
 Omega = zeros(m, n);
 idx = randperm(m*n);
-idx = idx(1:floor(length(idx)*0.05));
+idx = idx(1:floor(length(idx)*0.10));
 Omega(idx) = 1;
 
 % labels
@@ -43,10 +43,10 @@ close all;
 
 % ------------------------------------------------------------------------
 
-patPara.patSize = floor(sqrt(min(size(gImg)))/2);
-patPara.kNN = min(floor(patPara.patSize^2/2), 50);
+patPara.patSize = 12;
+patPara.kNN = 30;
 patPara.sliding = 2;
-patPara.rho = 1;
+patPara.rho = 5;
 patPara.pnt = 1;
 patPara.cImg = cImg;
 
@@ -54,7 +54,7 @@ patPara.cImg = cImg;
 propD = D;
 propNum = 20;
 nNnz = zeros(1, propNum);
-propTol = 2e-4;
+propTol = 1e-3;
 for i = 1:propNum
     [ Omega, propD ] = propColor(gImg, Omega, propD, propTol);
     nNnz(i) = nnz(Omega)/numel(Omega);
@@ -70,7 +70,7 @@ clear propNum nNnz propTol;
 
 patPara.epsilon = 5;
 
-[ rImg ] = localColorization( gImg, propD, 0.16, patPara);
+[ rImg ] = localColorization1( gImg, propD, 0.16, patPara);
 PSNR = psnr(rImg, cImg);
 recover = rImg;
 

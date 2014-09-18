@@ -6,11 +6,11 @@ close all;
 
 figure;
 imshow(recover.Global);
-title('global');
+title('GLR');
 
 figure;
 imshow(recover.UseOpt);
-title('LCP');
+title('LCC');
 
 figure;
 imshow(recover.LLR);
@@ -18,4 +18,4 @@ title('LLR');
 
 figure;
 imshow(recover.GupLLR);
-title('GupLLR');
+title('GLLR');

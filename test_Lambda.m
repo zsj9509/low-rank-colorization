@@ -1,14 +1,14 @@
 clear all; clc; close all;
 
 mask = 0;
-cImg = imread('images/landscape.jpg');
+cImg = imread('images/castle.jpg');
 cImg = double(cImg)/255;
 [m, n, k] = size(cImg);
 
 % observations
 Omega = zeros(m, n);
 idx = randperm(m*n);
-idx = idx(1:floor(length(idx)*0.1));
+idx = idx(1:floor(length(idx)*0.10));
 Omega(idx) = 1;
 
 % labels
@@ -41,13 +41,6 @@ imshow(Omega, [])
 clear temp1 temp2 idx;
 close all;
 
-% ------------------------------------------------------------------------
-patPara.patSize = 16;
-patPara.sliding = 2;
-patPara.epsilon = 1;
-patPara.rho = 1;
-patPara.pnt = 1;
-
 %-------------------------------------------------------------------------
 propD = D;
 propNum = 20;
@@ -59,21 +52,33 @@ for i = 1:propNum
     if(i > 1 && nNnz(i) - nNnz(i - 1) < 0.005)
         break;
     end
-    if(nNnz(i) >= 0.10)
+    if(nnz(Omega)/numel(Omega) >= 0.1)
         break;
     end
     propTol = propTol/2;
 end
 clear propNum nNnz propTol;
- 
-for i = 1:15
-    patPara.kNN = 10*i;
+
+for i = 11:15
+    patPara.lambda = 0.01*2^(i - 1);
+    patPara.patSize = 12;
+    patPara.sliding = 2;
+    patPara.epsilon = 0.5;
+    patPara.kNN = 30;
+    patPara.rho = 1;
+    patPara.pnt = 1;
+    
     [ rImg ] = localColorization( gImg, propD, 0.16, patPara);
+
+    %rImg  = localLowRank(gImg, D, mu, patPara);
+
     PSNR(i) = psnr(rImg, cImg);
     recover{i} = rImg;
+
+    save('castleLambda.mat');    
     
-    fprintf('i: %d \n', i);
-    save('landscapeGupSize.mat');
+    fprintf('lambda: %d \n', patPara.lambda);
 end
 
 clear propD i;
+

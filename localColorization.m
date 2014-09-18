@@ -30,7 +30,7 @@ resPatG = zeros(size(patG));
 resPatB = zeros(size(patB));
 
 patWgt = zeros(1, size(pat, 2));
-patJmp = 1000;
+patJmp = min(floor(patNum*0.05), 500);
 for n = 1:patJmp:patNum
     patJmp = min(patJmp, patNum - n);
     [minest, idx] = findMin(patWgt, patJmp);

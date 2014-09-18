@@ -24,6 +24,8 @@ end
 try
     [U, S, V] = svd(Z, 'econ');
 catch
+    Z(isnan(Z)) = 0;
+    Z(isinf(Z)) = 1;
     [U, S, V] = lansvd(Z, min([m,n]), 'L');
 end
 

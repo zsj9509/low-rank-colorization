@@ -1,6 +1,10 @@
 clear all;
 
-img = imread('images/barbara.png');
+img = imread('images/castle.jpg');
+
+if(length(size(img)) > 2)
+    img = rgb2gray(img);
+end
 
 img = double(img)/255;
 
