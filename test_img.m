@@ -1,7 +1,8 @@
 clear all; clc; close all;
-imName = 'woman';
+imName = 'castle-s';
 
-for t = 1:1:10 % observations
+% for t = 1:1:10 % observations
+t = 1;
 
 cImg = imread(strcat('images/', imName, '.jpg'));
 cImg = double(cImg)/255;
@@ -44,30 +45,35 @@ clear temp1 temp2 idx;
 close all;
 
 % ------------------------------------------------------------------------
-% Data.Omega = Omega;
-% Data.D = reshape(double(D), m, n*k);
-% Data.B = gImg/3;
-% 
-% rImg = ColorizationLL(Data, 10, 10, 5e-2);
-% imSize = size(cImg);
-% rImg = reshape(rImg, imSize(1), imSize(2), 3);
-% 
-% Global_PSNR = psnr(rImg, cImg);
-% Global_SSIM = ssim(rImg, cImg);
-% recover.Global = rImg;
+Data.Omega = Omega;
+Data.D = reshape(double(D), m, n*k);
+Data.B = gImg/3;
+
+para.tol = 1e-7;
+para.maxIter = 1000;
+para.pnt = 1;
+para.acc = 1;
+% rImg = optADMM( Data.B*3, Data.D, Data.Omega, 0.01, para );
+rImg = ColorizationLL(Data, 10, 10, 5e-2);
+% rImg = ColorizationLR(Data, 10, 10);
+imSize = size(cImg);
+rImg = reshape(rImg, imSize(1), imSize(2), 3);
+
+Global_PSNR = psnr(rImg, cImg);
+recover.Global = rImg;
 
 %-------------------------------------------------------------------------
-[ rImg ] = colorUseOpt(gImg/3, D );
- 
-UseOpt_PSNR = psnr(rImg, cImg);
-UseOpt_SSIM = ssim(rImg, cImg);
-recover.UseOpt = rImg;
+% [ rImg ] = colorUseOpt(gImg/3, D );
+%  
+% UseOpt_PSNR = psnr(rImg, cImg);
+% UseOpt_SSIM = ssim(rImg, cImg);
+% recover.UseOpt = rImg;
 
 %-------------------------------------------------------------------------
-patPara.patSize = ceil(sqrt(min(size(gImg)))/2);
+patPara.patSize = 14;
 patPara.sliding = 2;
-patPara.epsilon = 1.5;
-patPara.kNN = min(50, patPara.patSize^2);
+patPara.epsilon = 0.5;
+patPara.kNN = min(40, patPara.patSize^2);
 patPara.rho = 1;
 patPara.pnt = 1;
 
@@ -92,25 +98,22 @@ patPara.pnt = 1;
 % end
 % clear propNum nNnz propTol;
 
-% [propD] = LocalColorConsistency(Data.D, Data.B, Data.Omega, 1e-4, 5);
-% [m, n] = size(gImg);
-% propD = reshape(propD, m, n, 3);
-% imshow(propD, []);
-% propD(propD == 0) = -1;
-
-propD = recover.UseOpt;
+[propD] = LocalColorConsistency(Data.D, Data.B, Data.Omega, 1e-3, 10);
+[m, n] = size(gImg);
+propD = reshape(propD, m, n, 3);
+nnz(propD)/numel(propD)
+propD(propD == 0) = -1;
 
 [ rImg ] = localColorization( gImg, propD, 0.16, patPara);
 
-clear propD i m n Data;
+clear propD i m n;
 
 GupLLR_PSNR = psnr(rImg, cImg);
-GupLLR_SSIM = ssim(rImg, cImg);
 recover.GupLLR = rImg;
 
-matName = strcat(imName, sprintf('-%.2f.mat', 0.01*t));
+% matName = strcat(imName, sprintf('-%.2f.mat', 0.01*t));
 % save(matName);
 
-end % repeat missing
+% end % repeat missing
 
 

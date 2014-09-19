@@ -1,4 +1,4 @@
-function [L, S, X, iter] = ColorizationLR(Data, lambda, eta, tol, maxIter)
+function [L, S, X, obj] = ColorizationLR(Data, lambda, eta, tol, maxIter)
 
 % observations
 % indices
@@ -21,9 +21,9 @@ if nargin < 2
 end
 
 if nargin < 4
-    tol = 1e-8;
+    tol = 1e-6;
 elseif tol == -1
-    tol = 1e-8;
+    tol = 1e-6;
 end
 
 if nargin < 5
@@ -33,67 +33,46 @@ elseif maxIter == -1
 end
 
 % initialize
-Y1 = [B B B] + D;
-norm_two = lansvd(Y1, 1, 'L');
-norm_inf = norm( Y1(:), inf) / lambda;
-dual_norm = max(norm_two, norm_inf);
-Y1 = Y1 / dual_norm;
-
+Y1 = zeros(size(D));
 Y2 = Y1;
-
-S = zeros( m, n);
 
 L = zeros( m, n);
 X = zeros( m, n);
 
+mu1 = 1; % this one can be tuned
+mu2 = 1;
 
-mu1 = 1.25/norm_two; % this one can be tuned
-mu2 = 1.25/norm_two;
-mu_bar = mu1 * 1e15;
-rho = 1.5;          % this one can be tuned
-%rho = 3;
-
-iter = 0;
-total_svd = 0;
-converged = false;
-sv = 10;
-
-while ~converged       
-    iter = iter + 1;
-    
+obj = zeros(maxIter, 1);
+for iter = 1:maxIter        
     Zs = Y1/mu1 + D - L;
     S = ST_Shrinkage(Zs, Omega*lambda/mu1);
     
     Zl = ( Y1 + Y2 + mu1*(D - S) + mu2*X ) / (mu1 + mu2);
-    [L, sv] = SVShrinkage(Zl, 1/(mu1+mu2), sv, 0);
+    [L,  sv] = SVShrinkage(Zl, 1/(mu1+mu2));
     
     X = (eta*TT + mu2*I) \ (eta*T*B' - Y2' + mu2*L');
     X = X';
     
     Z1 = (D - L - S);
-    Y1 = Y1 + mu1 * Z1;
     Z2 = (X - L);
+    
+    obj_iter = sum(sv(:));
+    obj_iter = obj_iter + lambda*sum(abs(S(:) .* Omega(:)));
+    obj_iter = obj_iter + (eta/2)*sumsqr(X*T - B);
+    obj_iter = obj_iter + trace(Y1'*Z1);
+    obj_iter = obj_iter + (mu1/2)*sumsqr(Z1);
+    obj_iter = obj_iter + trace(Y2'*Z2);
+    obj_iter = obj_iter + (mu2/2)*sumsqr(Z2);
+    obj(iter) = obj_iter;
+    
+    fprintf('iter %d, obj: %d \n', iter,  obj_iter);
+    
+    Y1 = Y1 + mu1 * Z1;
     Y2 = Y2 + mu2 * Z2;
-
-    total_svd = total_svd + 1;
     
-    mu1 = min(mu1 * rho, mu_bar);
-    mu2 = min(mu2 * rho, mu_bar);
-        
-    %% stop Criterion    
-    stopCriterion = norm(Z1, 'fro') / norm(B, 'fro') + norm(Z2) / norm(B, 'fro');
-    if stopCriterion < tol
-        converged = true;
-    end    
-    
-    if mod( total_svd, 10) == 0
-        disp(['#svd ' num2str(total_svd) ' r(L) ' num2str(rank(L))...
-            ' |S|_0 ' num2str(length(find(abs(S)>0)))...
-            ' stopCriterion ' num2str(stopCriterion)]);
-    end    
-    
-    if ~converged && iter >= maxIter
-        disp('Maximum iterations reached') ;
-        converged = 1 ;       
+    if(iter > 3 && abs(obj(iter) - obj(iter - 1)) < tol)
+        break;
     end
 end
+
+obj = obj(1:iter);

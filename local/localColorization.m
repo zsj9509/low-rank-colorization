@@ -30,7 +30,7 @@ resPatG = zeros(size(patG));
 resPatB = zeros(size(patB));
 
 patWgt = zeros(1, size(pat, 2));
-patJmp = 1000;
+patJmp = 200;
 for n = 1:patJmp:patNum
     patJmp = min(patJmp, patNum - n);
     [minest, idx] = findMin(patWgt, patJmp);
@@ -70,9 +70,10 @@ for n = 1:patJmp:patNum
     end
     
     % optimization
-    para.maxIter = 70;
-    para.tol = 1e-5;    
+    para.maxIter = 200;
+    para.tol = 1e-7;    
     para.pnt = 0;
+    para.acc = 1;
     if(isfield(patPara, 'lambda'))
         para.lambda = patPara.lambda;
     end
@@ -139,7 +140,7 @@ resImg = patch2colorIm(resPatR, resPatG, resPatB, patIdx, patSize, imSize);
 
 end
 
-%% --------------------------------------------------------------
+%% ------------------------------------------------------------------------
 function [pat] = updateGupPat(newPat, oldPat, newWgt, oldWgt)
 
 dim = size(newPat, 1);
@@ -155,7 +156,7 @@ pat = pat ./ (newWgt + oldWgt);
 
 end
 
-%% --------------------------------------------------------------
+%% ------------------------------------------------------------------------
 function [minest, idx] = findMin(wgt, num)
 [~, idx] = sort(wgt, 'ascend');
 idx = idx(1:num);
