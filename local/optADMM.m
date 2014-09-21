@@ -88,7 +88,7 @@ for i = 1:maxIter
         alpha1 = 1;
     end
     
-    rho = rho*1.1;
+    rho = rho*1.25;
 end
 
 output.obj = obj(1:i);

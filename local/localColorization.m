@@ -12,14 +12,14 @@ imSize = size(gImg);
 [patR, patG, patB] = colorIm2patch(Obvs, patSize, sliding);
 
 patNum = length(patIdx);
-
-idx = randperm(patNum);
-pat = pat(:,idx); 
-patIdx = patIdx(idx); 
-patPos = patPos(:, idx);
-patR = patR(:, idx);
-patG = patG(:, idx);
-patB = patB(:, idx);
+% idx = randperm(patNum);
+% pat = pat(:,idx); 
+% patIdx = patIdx(idx); 
+% patPos = patPos(:, idx);
+% patR = patR(:, idx);
+% patG = patG(:, idx);
+% patB = patB(:, idx);
+% clear idx;
 
 % build up kd tree
 pat = augPatch(pat/3, rho*patPos, imSize, 2);
@@ -30,7 +30,7 @@ resPatG = zeros(size(patG));
 resPatB = zeros(size(patB));
 
 patWgt = zeros(1, size(pat, 2));
-patJmp = 200;
+patJmp = 400;
 for n = 1:patJmp:patNum
     patJmp = min(patJmp, patNum - n);
     [minest, idx] = findMin(patWgt, patJmp);
@@ -71,7 +71,7 @@ for n = 1:patJmp:patNum
     
     % optimization
     para.maxIter = 200;
-    para.tol = 1e-7;    
+    para.tol = 1e-6;    
     para.pnt = 0;
     para.acc = 1;
     if(isfield(patPara, 'lambda'))
@@ -88,7 +88,7 @@ for n = 1:patJmp:patNum
         gayPat_m = gayPat{m};
         gupObv_m = gupObv{m};
         
-        if(nnz(gupObv_m) < 1)
+        if(nnz(gupObv_m) < 2)
             continue;
         end
 
@@ -106,6 +106,11 @@ for n = 1:patJmp:patNum
     
     % weighted update results
     for m = 1:patJmp
+        gupObv_m = gupObv{m};
+        if(nnz(gupObv_m) < 2)
+            continue;
+        end
+        
         gnpIdx_m = gnpIdx(:, m);
         gnpDis_m = gnpDis(:, m);
         newPat_m = newPat{m};

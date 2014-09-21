@@ -1,89 +1,53 @@
 clear all; clc; close all;
-imName = 'castle-s';
+imName = {'castle', 'couple', 'koala', 'lake', 'landscape',...
+    'mushroom', 'street', 'woman'};
 
-% for t = 1:1:10 % observations
-t = 1;
+for i = 1:1:8
+for t = 1:1:1 % observations
 
-cImg = imread(strcat('images/', imName, '.jpg'));
+imName_i = imName{i};
+cImg = imread(strcat('images/', imName_i, '.jpg'));
 cImg = double(cImg)/255;
-[m, n, k] = size(cImg);
-
-% observations
-Omega = zeros(m, n);
-idx = randperm(m*n);
-idx = idx(1:floor(length(idx)*0.01*t));
-Omega(idx) = 1;
-
-% labels
-D = zeros(size(cImg));
-temp1 = -ones(m, n);
-temp2 = cImg(:,:,1);
-temp1(idx) = temp2(idx);
-D(:,:,1) = temp1;
-
-temp1 = -ones(m, n);
-temp2 = cImg(:,:,2);
-temp1(idx) = temp2(idx);
-D(:,:,2) = temp1;
-
-temp1 = -ones(m, n);
-temp2 = cImg(:,:,3);
-temp1(idx) = temp2(idx);
-D(:,:,3) = temp1;
-
-% gray images
-gImg = (cImg(:,:,1) + cImg(:,:,2) + cImg(:,:,3));
-% figure;
-% imshow(gImg, []);
-
-% obvs
+[gImg, D, Omega ] = generateTestImg( cImg, 0.01*t );
 Omega = repmat(Omega, 1, 3);
-% figure;
-% imshow(Omega, [])
-
-clear temp1 temp2 idx;
-close all;
 
 % ------------------------------------------------------------------------
 Data.Omega = Omega;
+[m, n, k] = size(D);
 Data.D = reshape(double(D), m, n*k);
 Data.B = gImg/3;
+clear m n k;
 
-para.tol = 1e-7;
-para.maxIter = 1000;
-para.pnt = 1;
-para.acc = 1;
 % rImg = optADMM( Data.B*3, Data.D, Data.Omega, 0.01, para );
-rImg = ColorizationLL(Data, 10, 10, 5e-2);
+rImg = ColorizationLL(Data, 10, 10, 1e-2);
 % rImg = ColorizationLR(Data, 10, 10);
 imSize = size(cImg);
 rImg = reshape(rImg, imSize(1), imSize(2), 3);
+clear imSize;
 
-Global_PSNR = psnr(rImg, cImg);
-recover.Global = rImg;
-
-%-------------------------------------------------------------------------
-% [ rImg ] = colorUseOpt(gImg/3, D );
-%  
-% UseOpt_PSNR = psnr(rImg, cImg);
-% UseOpt_SSIM = ssim(rImg, cImg);
-% recover.UseOpt = rImg;
+Global_PSNR(i,t) = psnr(rImg, cImg);
+recover{i,t}.Global = rImg;
 
 %-------------------------------------------------------------------------
-patPara.patSize = 14;
+[m, n, k] = size(D);
+propD = reshape(D, m, n*k);
+propD = propD + randn(size(propD))*0.02;
+propD = propD.*Omega;
+propD = reshape(propD, m, n, k);
+
+[ rImg ] = colorUseOpt(gImg/3, propD );
+ 
+UseOpt_PSNR(i,t) = psnr(rImg, cImg);
+recover{i,t}.UseOpt = rImg;
+
+clear m n k propD;
+
+%-------------------------------------------------------------------------
 patPara.sliding = 2;
-patPara.epsilon = 0.5;
-patPara.kNN = min(40, patPara.patSize^2);
+patPara.epsilon = 0.9;
 patPara.rho = 1;
 patPara.pnt = 1;
 
-% rImg  = localLowRank(gImg, D, 0.04, patPara);
-% 
-% Local_PSNR = psnr(rImg, cImg);
-% Local_SSIM = ssim(rImg, cImg);
-% recover.LLR = rImg;
-
-% -------------------------------------------------------------------------
 % propD = D;
 % propNum = 10;
 % nNnz = zeros(1, propNum);
@@ -98,22 +62,42 @@ patPara.pnt = 1;
 % end
 % clear propNum nNnz propTol;
 
-[propD] = LocalColorConsistency(Data.D, Data.B, Data.Omega, 1e-3, 10);
-[m, n] = size(gImg);
-propD = reshape(propD, m, n, 3);
+% -------------------------------------------------------------------------
+patPara.patSize = 20;
+nnzD = 0;
+radius = 8;
+while(nnzD < 0.03)
+    radius = radius + 2;
+    [propD] = LocalColorConsistency(Data.D, Data.B, Data.Omega, 1e-3, radius);
+    nnzD = nnz(propD)/numel(propD);
+end
+[m, n, k] = size(D);
+D = reshape(D, m, n*k);
+Omega = Omega + double(propD > 0);
+propD = propD + D;
 nnz(propD)/numel(propD)
-propD(propD == 0) = -1;
+propD(Omega == 0) = -1;
+propD = reshape(propD, m, n, k);
+clear m n k nnzD D Omega;
 
-[ rImg ] = localColorization( gImg, propD, 0.16, patPara);
+rImg  = localLowRank(gImg, propD, 0.04, patPara);
+Local_PSNR(i,t) = psnr(rImg, cImg);
+recover{i,t}.LLR = rImg;
 
-clear propD i m n;
+% -------------------------------------------------------------------------
+patPara.patSize = 16;
+patPara.kNN = min(floor(patPara.patSize^2/4), 50);
+[ rImg ] = localColorization( gImg, propD, (0.01*patPara.patSize), patPara);
+clear propD m n Data;
 
-GupLLR_PSNR = psnr(rImg, cImg);
-recover.GupLLR = rImg;
+GupLLR_PSNR(i,t) = psnr(rImg, cImg);
+recover{i,t}.GupLLR = rImg;
 
 % matName = strcat(imName, sprintf('-%.2f.mat', 0.01*t));
 % save(matName);
+save('16.mat');
 
-% end % repeat missing
+end % repeat missing
+end % image name
 
 

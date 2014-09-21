@@ -26,8 +26,9 @@ resPatG = zeros(size(pat));
 resPatB = zeros(size(pat));
 
 para.maxIter = 100;
-para.tol = 1e-6;    
+para.tol = 1e-8;    
 para.pnt = 0;
+para.acc = 1;
 
 parfor n = 1:N  
     % optimization    

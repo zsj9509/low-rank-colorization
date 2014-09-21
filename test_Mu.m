@@ -30,59 +30,35 @@ D(:,:,3) = temp1;
 
 % gray images
 gImg = (cImg(:,:,1) + cImg(:,:,2) + cImg(:,:,3));
-figure;
-imshow(gImg, []);
-
-% obvs
 Omega = repmat(Omega, 1, 3);
-figure;
-imshow(Omega, [])
 
 clear temp1 temp2 idx;
-close all;
-
-% ------------------------------------------------------------------------
-
-patPara.patSize = floor(sqrt(min(size(gImg)))/2);
-patPara.kNN = min(floor(patPara.patSize^2/2), 50);
-patPara.sliding = 2;
-patPara.rho = 1;
-patPara.pnt = 1;
-patPara.epsilon = 2;
 
 %-------------------------------------------------------------------------
-propD = D;
-propNum = 20;
-nNnz = zeros(1, propNum);
-propTol = 1e-3;
-for i = 1:propNum
-    [ Omega, propD ] = propColor(gImg, Omega, propD, propTol);
-    nNnz(i) = nnz(Omega)/numel(Omega);
-    if(i > 1 && nNnz(i) - nNnz(i - 1) < 0.005)
-        break;
-    end
-    if(nnz(Omega)/numel(Omega) >= 0.1)
-        break;
-    end
-    propTol = propTol/2;
-end
-clear propNum nNnz propTol;
+Data.Omega = Omega;
+Data.D = reshape(double(D), m, n*k);
+Data.B = gImg/3;
+[propD] = LocalColorConsistency(Data.D, Data.B, Data.Omega, 1e-3, 10);
+[m, n] = size(gImg);
+propD = reshape(propD, m, n, 3);
+nnz(propD)/numel(propD)
+propD(propD == 0) = -1;
+clear Data m n;
 
-for i = 1:10
-    mu = 0.01*2^(i - 1);
-%     [ rImg ] = localColorization( gImg, propD, mu, patPara);
-
-    patPara.patSize = ceil(sqrt(min(size(gImg)))/2);
-    patPara.sliding = 2;
-    patPara.epsilon = min(patPara.patSize/3, 3);
-    patPara.kNN = min(50, patPara.patSize^2);
+for i = 1:7
+    mu = (5e-4)*10^(i - 1);
+    
+    patPara.patSize = 12;
+    patPara.sliding = 3;
+    patPara.epsilon = 0.5;
+    patPara.kNN = 30;
     patPara.rho = 1;
     patPara.pnt = 1;
 
-    rImg  = localLowRank(gImg, D, mu, patPara);
+    % rImg  = localLowRank(gImg, propD, mu, patPara);
+    [ rImg ] = localColorization( gImg, propD, mu, patPara);
 
     PSNR(i) = psnr(rImg, cImg);
-    SSIM(i) = ssim(rImg, cImg);
     recover{i} = rImg;
 
     save('castleMuLLR.mat');    
