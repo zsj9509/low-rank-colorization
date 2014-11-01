@@ -1,6 +1,6 @@
 function [L S X iter] = ColorizationLR(Data, lambda, eta, tol, maxIter)
 
-addpath PROPACK;
+% addpath PROPACK;
 
 % observations
 % indices
@@ -52,7 +52,7 @@ X = zeros( m, n);
 mu1 = 1.25/norm_two; % this one can be tuned
 mu2 = 1.25/norm_two;
 mu_bar = mu1 * 1e15;
-rho = 1.5;          % this one can be tuned
+rho = 1.3;          % this one can be tuned
 %rho = 3;
 
 iter = 0;
@@ -89,14 +89,14 @@ while ~converged
         converged = true;
     end    
     
-    if mod( total_svd, 10) == 0
-        disp(['#svd ' num2str(total_svd) ' r(L) ' num2str(rank(L))...
-            ' |S|_0 ' num2str(length(find(abs(S)>0)))...
-            ' stopCriterion ' num2str(stopCriterion)]);
-    end    
+%     if mod( total_svd, 10) == 0
+%         disp(['#svd ' num2str(total_svd) ' r(L) ' num2str(rank(L))...
+%             ' |S|_0 ' num2str(length(find(abs(S)>0)))...
+%             ' stopCriterion ' num2str(stopCriterion)]);
+%     end    
     
     if ~converged && iter >= maxIter
-        disp('Maximum iterations reached') ;
+%         disp('Maximum iterations reached') ;
         converged = 1 ;       
     end
 end

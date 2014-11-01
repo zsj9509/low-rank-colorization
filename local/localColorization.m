@@ -12,14 +12,16 @@ imSize = size(gImg);
 [patR, patG, patB] = colorIm2patch(Obvs, patSize, sliding);
 
 patNum = length(patIdx);
-% idx = randperm(patNum);
-% pat = pat(:,idx); 
-% patIdx = patIdx(idx); 
-% patPos = patPos(:, idx);
-% patR = patR(:, idx);
-% patG = patG(:, idx);
-% patB = patB(:, idx);
-% clear idx;
+if(isfield(patPara, 'rand') && patPara.rand == 1)
+    idx = randperm(patNum);
+    pat = pat(:,idx); 
+    patIdx = patIdx(idx); 
+    patPos = patPos(:, idx);
+    patR = patR(:, idx);
+    patG = patG(:, idx);
+    patB = patB(:, idx);
+    clear idx;
+end
 
 % build up kd tree
 pat = augPatch(pat/3, rho*patPos, imSize, 2);

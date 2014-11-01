@@ -3,19 +3,21 @@ close all;
 % figure;
 % imshow(cImg);
 % title('origin');
+i = 8;
+t = 10;
 
 figure;
-imshow(recover.Global);
+imshow(recover{i,t}.Global);
 title('GLR');
 
 figure;
-imshow(recover.UseOpt);
+imshow(recover{i,t}.UseOpt);
 title('LCC');
 
 figure;
-imshow(recover.LLR);
+imshow(recover{i,t}.LLR);
 title('LLR');
 
 figure;
-imshow(recover.GupLLR);
+imshow(recover{i,t}.GupLLR);
 title('GLLR');

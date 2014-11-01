@@ -7,7 +7,7 @@ if nargin < 4
     choose = choosvd(n, sv);
 end
 
-addpath PROPACK;
+% addpath PROPACK;
 
 
 if choose == 1

@@ -1,10 +1,13 @@
-DUseOpt = recover.UseOpt;
+cImg = imread(strcat('images/', 'castle', '.jpg'));
+cImg = double(cImg)/255;
+
+DUseOpt = recover{1,1}.UseOpt;
 DUseOpt = DUseOpt - cImg;
-DGlobal = recover.Global;
+DGlobal = recover{1,1}.Global;
 DGlobal = DGlobal - cImg;
-DLLR = recover.LLR;
+DLLR = recover{1,1}.LLR;
 DLLR = DLLR - cImg;
-DGupLLR = recover.GupLLR;
+DGupLLR = recover{1,1}.GupLLR;
 DGupLLR = DGupLLR - cImg;
 
 DUseOpt = abs(DUseOpt);

@@ -20,6 +20,13 @@
 % clear cImg i UseOpt_PSNR Global_PSNR Local_PSNR GupLLR_PSNR;
 
 close all;
+
+n = 2;
+PSNR = UseOpt_PSNR(n, :);
+PSNR = cat(1, PSNR, Global_PSNR(n,:));
+PSNR = cat(1, PSNR, Local_PSNR(n,:));
+PSNR = cat(1, PSNR, GupLLR_PSNR(n,:));
+
 figure;
 hold on;
 plot(PSNR(1,:), 'LineStyle','-' , 'Marker','o', 'color','red'  ,'LineWidth',2);
@@ -36,8 +43,6 @@ legend('Location','SouthEast','LCC', 'GLR','LLORMA','PaLLR');
 set(get(gca,'XLabel'),'FontSize',11,'Vertical','top');
 set(get(gca,'YLabel'),'FontSize',11,'Vertical','middle');
 set(gcf,'Position',[100 100 500 350]);
-
-clear;
 
 
 % %% --------------------------------------------------------------
