@@ -1,4 +1,4 @@
-clear all; clc; close all;
+clear; clc; close all;
 
 imName_i = 'castle';
 cImg = imread(strcat('images/', imName_i, '.jpg'));

@@ -52,7 +52,7 @@ X = zeros( m, n);
 mu1 = 1.25/norm_two; % this one can be tuned
 mu2 = 1.25/norm_two;
 mu_bar = mu1 * 1e15;
-rho = 1.3;          % this one can be tuned
+rho = 1.1;          % this one can be tuned
 %rho = 3;
 
 iter = 0;

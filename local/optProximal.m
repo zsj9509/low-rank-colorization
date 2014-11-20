@@ -47,14 +47,14 @@ rho = initialRho(Omega, lambda);
 obj    = zeros(maxIter, 1);
 obj(1) = objectValue(L0, T, W, O, Omega, 0, lambda, mu);
 for i = 2:maxIter       
-    acc = 1;
-    if(acc)
+    if(para.acc)
         Y = L1 + (t0 - 1)/t1 * (L1 - L0);
     else
         Y = L0;
     end
     
     gradY = Y*TTt - WTt + lambda*(Y - O).*Omega;
+    gradY = full(gradY);
     [U, S, V] = svt(Y - gradY/rho, mu/rho);
     newL = U*S*V';
     L0 = L1;
@@ -62,8 +62,9 @@ for i = 2:maxIter
 
     obj(i) = objectValue(newL, T, W, O, Omega, S, lambda, mu);
     
+    ti = t0;
     t0 = t1;
-    t1 = 1 + sqrt(1 + 4*t0^2)/2;
+    t1 = 1 + sqrt(1 + 4*ti^2)/2;
     
     if(para.pnt == 1)
         fprintf('iter %d, obj %d, rank %d \n', i, obj(i), nnz(S));
@@ -74,7 +75,7 @@ for i = 2:maxIter
     end
 end
 
-obj = obj(2:i);
+obj = obj(1:i);
 
 end
 

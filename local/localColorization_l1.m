@@ -44,8 +44,8 @@ for n = 1:patJmp:patNum
     gnpIdx = zeros(kNN, patJmp);
     gnpDis = zeros(kNN, patJmp);
     curPat = pat(:, idx);
-    % parfor m = 1:patJmp
-    for m = 1:patJmp
+    parfor m = 1:patJmp
+    % for m = 1:patJmp
         curPat_m = curPat(:, m);
         [gnpIdx_m, gnpDis_m] = vl_kdtreequery(kdTree, pat, curPat_m, ...
             'NumNeighbors', kNN);
@@ -83,8 +83,8 @@ for n = 1:patJmp:patNum
     newPat = cell (1, patJmp);
     iter   = zeros(1, patJmp); 
     rank   = zeros(1, patJmp);
-    % parfor m = 1:patJmp
-    for m = 1:patJmp
+    parfor m = 1:patJmp
+    % for m = 1:patJmp
         Omega_m = double(gupObv{m} ~= -1);
         Omega_m = sparse(Omega_m);
         gayPat_m = gayPat{m};

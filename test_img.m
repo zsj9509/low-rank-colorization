@@ -1,4 +1,4 @@
-clear all; clc; close all;
+clear; clc; close all;
 % imName = {'castle', 'couple', 'koala', 'lake', 'landscape',...
 %     'mushroom', 'street', 'woman'};
 
