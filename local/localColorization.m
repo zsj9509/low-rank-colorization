@@ -1,4 +1,4 @@
-function [ resImg ] = localColorization( gImg, Obvs, mu, patPara)
+function [ resImg, output ] = localColorization( gImg, Obvs, mu, patPara)
 
 kNN = patPara.kNN;
 patSize = patPara.patSize;
@@ -33,6 +33,10 @@ resPatB = zeros(size(patB));
 
 patWgt = zeros(1, size(pat, 2));
 patJmp = 400;
+
+Tpm = 0;
+Topt = 0;
+
 for n = 1:patJmp:patNum
     patJmp = min(patJmp, patNum - n);
     [minest, idx] = findMin(patWgt, patJmp);
@@ -44,8 +48,12 @@ for n = 1:patJmp:patNum
     gnpIdx = zeros(kNN, patJmp);
     gnpDis = zeros(kNN, patJmp);
     curPat = pat(:, idx);
-    parfor m = 1:patJmp
-    % for m = 1:patJmp
+    
+    tm = tic;
+    % parfor m = 1:patJmp
+    for m = 1:patJmp
+        
+        
         curPat_m = curPat(:, m);
         [gnpIdx_m, gnpDis_m] = vl_kdtreequery(kdTree, pat, curPat_m, ...
             'NumNeighbors', kNN);
@@ -57,6 +65,7 @@ for n = 1:patJmp:patNum
         gnpDis_m = exp(-gnpDis_m');
         gnpDis(:, m) = gnpDis_m;
     end
+    Tpm = Tpm + toc(tm);
     
     % observations
     gupObv = cell(1, patJmp);
@@ -72,10 +81,10 @@ for n = 1:patJmp:patNum
     end
     
     % optimization
-    para.maxIter = 200;
-    para.tol = 1e-6;    
+    para.maxIter = 1000;
+    para.tol = 1e-4;    
     para.pnt = 0;
-    para.acc = 1;
+    para.acc = 0;
     if(isfield(patPara, 'lambda'))
         para.lambda = patPara.lambda;
     end
@@ -83,6 +92,8 @@ for n = 1:patJmp:patNum
     newPat = cell (1, patJmp);
     iter   = zeros(1, patJmp); 
     rank   = zeros(1, patJmp);
+    
+    tm = tic;
     parfor m = 1:patJmp
     % for m = 1:patJmp
         Omega_m = double(gupObv{m} ~= -1);
@@ -94,7 +105,9 @@ for n = 1:patJmp:patNum
             continue;
         end
 
-        [newPat_m, out] = optADMM( gayPat_m, gupObv_m, Omega_m, mu, para );
+        %[newPat_m, out] = optADMM( gayPat_m, gupObv_m, Omega_m, mu, para );
+        [ newPat_m, out ] = ...
+            optProximal( gayPat_m, gupObv_m, Omega_m, mu, para );
         
         newPat_m(newPat_m < 0) = 0;
         newPat_m(newPat_m > 1) = 1;
@@ -105,6 +118,7 @@ for n = 1:patJmp:patNum
     end
     iter = mean(iter);
     rank = mean(rank);
+    Topt = Topt + toc(tm);
     
     % weighted update results
     for m = 1:patJmp
@@ -144,6 +158,9 @@ for n = 1:patJmp:patNum
 end
 
 resImg = patch2colorIm(resPatR, resPatG, resPatB, patIdx, patSize, imSize);
+
+output.Tpm = Tpm;
+output.Topt = Topt;
 
 end
 

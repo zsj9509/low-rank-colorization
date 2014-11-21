@@ -1,4 +1,4 @@
-function [ L1, obj ] = optProximal( W, O, Omega, mu, para )
+function [ L1, output ] = optProximal( W, O, Omega, mu, para )
 % W: [m n] gray image
 % O: [m 3n] observed positions
 % Omega: [m 3n] observed values
@@ -19,10 +19,10 @@ if(exist('para', 'var'))
     
     if(isfield(para, 'L'))
         L0 = para.L;
-        L1 = repmat(W, 1, 3);
+        L1 = para.L;
     else
-        L0 = zeros(size(O));
-        L1 = L0;
+        L0 = repmat(W, 1, 3);
+        L1 = repmat(W, 1, 3);
     end
 else
     L0 = zeros(size(O));
@@ -50,7 +50,7 @@ for i = 2:maxIter
     if(para.acc)
         Y = L1 + (t0 - 1)/t1 * (L1 - L0);
     else
-        Y = L0;
+        Y = L1;
     end
     
     gradY = Y*TTt - WTt + lambda*(Y - O).*Omega;
@@ -75,7 +75,8 @@ for i = 2:maxIter
     end
 end
 
-obj = obj(1:i);
+output.obj = obj(1:i);
+output.rank = nnz(S);
 
 end
 
@@ -93,6 +94,7 @@ function rho = initialRho(Omega, lambda)
 [~, pos] = max(sum(Omega, 1));
 I = lambda*diag(Omega(:, pos));
 I = I + 3*eye(size(I));
-rho = svds(I, 1);
+I = sparse(I);
+rho = lansvd(I, 1, 'L');
 end
 

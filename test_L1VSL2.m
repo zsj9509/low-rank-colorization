@@ -2,13 +2,14 @@ clear; clc; close all;
 imName = {'castle', 'couple', 'koala', 'lake', 'landscape',...
     'mushroom', 'street', 'woman'};
 
-for i = 1:length(imName)
-for t = 10:10 % observations
+for i = 1:1
+    
+t = 9;
 
 imName_i = imName{i};
 cImg = imread(strcat('images/', imName_i, '.jpg'));
 cImg = double(cImg)/255;
-[gImg, D, Omega ] = generateTestImg( cImg, 0.01*t );
+[gImg, D, Omega ] = generateTestImg( cImg, 0.01*t);
 Omega = repmat(Omega, 1, 3);
 
 % ------------------------------------------------------------------------
@@ -53,23 +54,22 @@ patPara.epsilon = 0.25;
 %     patPara.rand = 1;
 %     patPara.epsilon = 0.5;
 % end
-patPara.kNN = min(floor(patPara.patSize^2/4), 50);e3
+patPara.kNN = min(floor(patPara.patSize^2/4), 50);
 clear m n Data tempT;
 
 time = tic;
-[ rImg ] = localColorization( gImg, propD, (0.01*patPara.patSize), patPara);
+[ rImg, output ] = localColorization( gImg, propD, (0.01*patPara.patSize), patPara);
 TIMEL2(i,t) = toc(time);
 PSNRL2(i,t) = psnr(rImg, cImg);
 
-time = tic;
-[ rImg ] = localColorization_l1( gImg, propD, (0.01*patPara.patSize), patPara);
-TIMEL1(i,t) = toc(time);
-PSNRL1(i,t) = psnr(rImg, cImg);
+% time = tic;
+% [ rImg ] = localColorization_l1( gImg, propD, (0.01*patPara.patSize), patPara);
+% TIMEL1(i,t) = toc(time);
+% PSNRL1(i,t) = psnr(rImg, cImg);
+% 
+% clear rImg Omega cImg gImg D Data time;
+% save('time.mat');
 
-clear rImg Omega cImg gImg D Data time;
-save('time.mat');
-
-end % repeat missing
 end % image name
 
 
