@@ -1,7 +1,0 @@
-Sheng-Jun Huang, Zhi-Hua Zhou: Multi-Label Learning by Exploiting Label Correlations Locally. AAAI 2012
-Sheng-Jun Huang, Yang Yu, Zhi-Hua Zhou: Multi-label hypothesis reuse. KDD 2012: 525-533
-
-1. Limited novelty.
-   Adding labels as extra features is a common trick in multi-label learning, it can also be done for other learning approaches. The author did not make it clear why exploring relationship with tree classifiers is better. 
-
-2. Lack of compared methods. The motivation to explore label correlation is to improve classification performance, however, in the experiment, 
