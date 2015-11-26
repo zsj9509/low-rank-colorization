@@ -33,7 +33,6 @@ clear m n k;
 %-------------------------------------------------------------------------
 % [m, n, k] = size(D);
 % propD = reshape(D, m, n*k);
-% propD = propD + randn(size(propD))*0.015;
 % propD = propD.*Omega;
 % propD = reshape(propD, m, n, k);
 % 
