@@ -66,7 +66,7 @@ close all;
 %-------------------------------------------------------------------------
 patPara.patSize = ceil(sqrt(min(size(gImg)))/1.5);
 patPara.sliding = 2;
-patPara.epsilon = 1.5;
+patPara.epsilon = 0.5;
 patPara.kNN = min(50, patPara.patSize^2);
 patPara.rho = 1;
 patPara.pnt = 1;
@@ -92,14 +92,6 @@ for i = 1:propNum
     propTol = propTol/2;
 end
 clear propNum nNnz propTol;
-
-% [propD] = LocalColorConsistency(Data.D, Data.B, Data.Omega, 1e-4, 5);
-% [m, n] = size(gImg);
-% propD = reshape(propD, m, n, 3);
-% imshow(propD, []);
-% propD(propD == 0) = -1;
-
-% propD = recover.UseOpt;
 
 [ rImg ] = localColorization( gImg, propD, 0.16, patPara);
 

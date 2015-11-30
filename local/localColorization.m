@@ -13,13 +13,13 @@ imSize = size(gImg);
 
 patNum = length(patIdx);
 
-% idx = randperm(patNum);
-% pat = pat(:,idx); 
-% patIdx = patIdx(idx); 
-% patPos = patPos(:, idx);
-% patR = patR(:, idx);
-% patG = patG(:, idx);
-% patB = patB(:, idx);
+idx = randperm(patNum);
+pat = pat(:,idx); 
+patIdx = patIdx(idx); 
+patPos = patPos(:, idx);
+patR = patR(:, idx);
+patG = patG(:, idx);
+patB = patB(:, idx);
 
 % build up kd tree
 pat = augPatch(pat/3, rho*patPos, imSize, 2);
@@ -92,7 +92,6 @@ for n = 1:patJmp:patNum
         end
 
         [newPat_m, out] = optADMM( gayPat_m, gupObv_m, Omega_m, mu, para );
-%        [newPat_m, out] = optADMMTen( gayPat_m, gupObv_m, Omega_m, mu, para );
                 
         newPat_m(newPat_m < 0) = 0;
         newPat_m(newPat_m > 1) = 1;
@@ -126,13 +125,12 @@ for n = 1:patJmp:patNum
     if(patPara.pnt == 1)
         fprintf('%d out of %d, avg loops %2.2f rank %2.2f, min wgt: %2.2f \n', ...
         n, patNum, iter, rank, minest);
-        fprintf('nnz: %1.2f\n', nnz(patWgt)/numel(patWgt));
     end
     
     if(isfield(patPara, 'cImg'))
         resImg = patch2colorIm(resPatR, resPatG, resPatB, patIdx, patSize, imSize);
         PSNR = psnr(resImg, patPara.cImg);
-        fprintf('PSNR %2.4f , nnz: %d\n', PSNR, nnz(patWgt)/numel(patWgt));
+        fprintf('PSNR %2.4f , nnz: %.2d\n', PSNR, nnz(patWgt)/numel(patWgt));
     end
 end
 

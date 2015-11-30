@@ -1,0 +1,31 @@
+===========================================================================
+intel i7-4970k CPU
+Matlab 2015a & Windows 7 system 
+8 thread in parallel
+===========================================================================
+
+Example output (castle image)
+
+Starting parallel pool (parpool) using the 'local' profile ... connected to 8 workers.
+1 out of 36816, avg loops 51.21 rank 54.53, min wgt: 0.00 
+PSNR 9.8005 , nnz: 4.24e-01
+501 out of 36816, avg loops 51.40 rank 53.86, min wgt: 0.00 
+PSNR 13.1511 , nnz: 6.65e-01
+1001 out of 36816, avg loops 50.75 rank 54.10, min wgt: 0.00 
+PSNR 16.4549 , nnz: 8.01e-01
+1501 out of 36816, avg loops 50.06 rank 53.71, min wgt: 0.00 
+PSNR 19.5990 , nnz: 8.75e-01
+2001 out of 36816, avg loops 50.10 rank 53.94, min wgt: 0.00 
+PSNR 22.5407 , nnz: 9.20e-01
+2501 out of 36816, avg loops 50.06 rank 54.33, min wgt: 0.00 
+PSNR 26.2310 , nnz: 9.52e-01
+3001 out of 36816, avg loops 50.28 rank 54.05, min wgt: 0.00 
+PSNR 30.1476 , nnz: 9.73e-01
+3501 out of 36816, avg loops 50.18 rank 54.30, min wgt: 0.00 
+PSNR 35.3080 , nnz: 9.89e-01
+4001 out of 36816, avg loops 49.96 rank 54.21, min wgt: 0.00 
+PSNR 39.8064 , nnz: 01
+4501 out of 36816, avg loops 47.14 rank 53.88, min wgt: 0.27 
+PSNR 39.7907 , nnz: 01
+
+in total 434 seconds
