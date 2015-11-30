@@ -1,4 +1,4 @@
-function [ X, err ] = conjGrad_admm( A, Omega, lambda, rho, C, x, tol)
+function [ X, err ] = conjGrad_admm( A, Omega, lambda, rho, C, x )
 
 [m, n] = size(C);
 
@@ -9,7 +9,7 @@ if(~exist('x', 'var'))
     x = zeros(m*n, 1);
 end
 
-maxIter = ceil(sqrt(max(m, n)));
+maxIter = ceil(min(max(m, n)));
 err = zeros(maxIter, 1);
 
 % conjugate descent
@@ -23,8 +23,8 @@ for i = 1:maxIter
     beta = (rk'*rk)/(r'*r);
     p = - rk + beta*p;
     
-    err(i) = sumsqr(rk);
-    if(err(i) < tol)
+    err(i) = norm(rk, 2);
+    if(err(i) < 1e-6)
         break;
     end
     r = rk;

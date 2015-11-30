@@ -1,6 +1,4 @@
-function [L S X iter] = ColorizationLR(Data, lambda, eta, tol, maxIter)
-
-% addpath PROPACK;
+function [L, S, X, iter] = ColorizationLR(Data, lambda, eta, tol, maxIter)
 
 % observations
 % indices
@@ -10,12 +8,12 @@ D = Data.D;
 % the black&white matrix
 B = 3 * Data.B;
 
-[m n] = size(B);
+[~, n] = size(B);
 I = eye(n, n);
 T = [I; I; I];
 TT = T*T';
 
-[m n] = size(D);
+[m, n] = size(D);
 I = eye(n);
 
 if nargin < 2
@@ -23,15 +21,15 @@ if nargin < 2
 end
 
 if nargin < 4
-    tol = 1e-8;
+    tol = 1e-6;
 elseif tol == -1
-    tol = 1e-8;
+    tol = 1e-6;
 end
 
 if nargin < 5
-    maxIter = 1000;
+    maxIter = 300;
 elseif maxIter == -1
-    maxIter = 1000;
+    maxIter = 300;
 end
 
 % initialize
@@ -51,8 +49,8 @@ X = zeros( m, n);
 
 mu1 = 1.25/norm_two; % this one can be tuned
 mu2 = 1.25/norm_two;
-mu_bar = mu1 * 1e15;
-rho = 1.1;          % this one can be tuned
+mu_bar = mu1 * 1e3;
+rho = 1.5;          % this one can be tuned
 %rho = 3;
 
 iter = 0;
@@ -79,7 +77,6 @@ while ~converged
 
     total_svd = total_svd + 1;
     
-    
     mu1 = min(mu1 * rho, mu_bar);
     mu2 = min(mu2 * rho, mu_bar);
         
@@ -89,14 +86,14 @@ while ~converged
         converged = true;
     end    
     
-%     if mod( total_svd, 10) == 0
-%         disp(['#svd ' num2str(total_svd) ' r(L) ' num2str(rank(L))...
-%             ' |S|_0 ' num2str(length(find(abs(S)>0)))...
-%             ' stopCriterion ' num2str(stopCriterion)]);
-%     end    
+    if mod( total_svd, 10) == 0
+        disp(['#svd ' num2str(total_svd) ' r(L) ' num2str(rank(L))...
+            ' |S|_0 ' num2str(length(find(abs(S)>0)))...
+            ' stopCriterion ' num2str(stopCriterion)]);
+    end    
     
     if ~converged && iter >= maxIter
-%         disp('Maximum iterations reached') ;
+        disp('Maximum iterations reached') ;
         converged = 1 ;       
     end
 end
